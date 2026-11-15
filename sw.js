@@ -1,5 +1,5 @@
-const V = 'sunflower-v3';
-const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
+const V = 'sunflower-v4';
+const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
@@ -50,7 +50,7 @@ async function remindNow() {
     const sm = sl.h * 60 + sl.m, key = new Request('./fired/' + t.date + '-' + sl.id);
     if (t.min >= sm && t.min - sm <= 120 && !(await store.match(key))) {
       await store.put(key, new Response('1'));
-      await self.registration.showNotification(sl.title, {body: sl.body, tag: sl.id, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png'});
+      await self.registration.showNotification(sl.title, {body: sl.body, tag: sl.id, icon: 'icon-192.png', badge: 'icon-192.png'});
     }
   }
 }
