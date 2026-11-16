@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F5B400" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#2B1F0A" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sunflower Diary">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Sunflower Diary</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout concept: one giant slowly turning sunflower fixed behind everything; a love note, today's care reminders and the cycle flower on the left, calendar, daily log and history on the right (one column on phones). */
+:root{
+  --bg-a:#FFF9DC; --bg-b:#FFE789;
+  --card:rgba(255,252,236,.86); --note-bg:rgba(255,214,79,.92);
+  --ink:#3A2208; --ink-soft:#6B4A1F; --line:rgba(122,80,10,.24); --shadow:rgba(120,70,0,.16);
+  --sun:#F5B400; --sun-deep:#C77A00; --btn-ink:#3A2208;
+  --leaf:#4F7F1E; --rose:#C93A52; --rose-ink:#FFFFFF; --water:#3F8FCB;
+  --fertile-bg:rgba(79,127,30,.22); --chip:rgba(245,180,0,.18); --focus:#7A4A00;
+  --petal-1:#F2A100; --petal-2:#FFCF2E; --petal-edge:#C77A00; --vein:#B86E00;
+  --seed-1:#6B3F17; --seed-2:#3A1F0A; --seed-dot:#A8703A; --seed-edge:#8A5A22; --on-seed:#FFF1C9;
+  --display:'Fraunces',Georgia,'Times New Roman',serif;
+  --body:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --hand:'Caveat','Segoe Script','Bradley Hand',cursive;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg-a:#2B1F0A; --bg-b:#150F05;
+    --card:rgba(38,27,10,.88); --note-bg:rgba(92,64,10,.92);
+    --ink:#FFF0C6; --ink-soft:#E3C88A; --line:rgba(255,215,120,.24); --shadow:rgba(0,0,0,.4);
+    --sun:#F7C32E; --sun-deep:#E7A800; --btn-ink:#2A1A04;
+    --leaf:#9CCB5A; --rose:#F0687E; --rose-ink:#2B0E14; --water:#7CC0F0;
+    --fertile-bg:rgba(156,203,90,.22); --chip:rgba(247,195,46,.16); --focus:#FFD866;
+    --petal-1:#D99200; --petal-2:#F2B91F; --petal-edge:#8A5500; --vein:#7A4A00;
+    --seed-1:#4A2A0F; --seed-2:#1E0F04; --seed-dot:#8A5A2A; --seed-edge:#6B4519;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg-a:#2B1F0A; --bg-b:#150F05;
+  --card:rgba(38,27,10,.88); --note-bg:rgba(92,64,10,.92);
+  --ink:#FFF0C6; --ink-soft:#E3C88A; --line:rgba(255,215,120,.24); --shadow:rgba(0,0,0,.4);
+  --sun:#F7C32E; --sun-deep:#E7A800; --btn-ink:#2A1A04;
+  --leaf:#9CCB5A; --rose:#F0687E; --rose-ink:#2B0E14; --water:#7CC0F0;
+  --fertile-bg:rgba(156,203,90,.22); --chip:rgba(247,195,46,.16); --focus:#FFD866;
+  --petal-1:#D99200; --petal-2:#F2B91F; --petal-edge:#8A5500; --vein:#7A4A00;
+  --seed-1:#4A2A0F; --seed-2:#1E0F04; --seed-dot:#8A5A2A; --seed-edge:#6B4519;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  font-family:var(--body); color:var(--ink); line-height:1.5; -webkit-text-size-adjust:100%;
+  background:radial-gradient(120% 90% at 50% 40%,var(--bg-a),var(--bg-b)),var(--bg-b);
+  background-attachment:fixed;
+  padding-block:18px 36px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+/* The big background sunflower */
+.bloom{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+.bloom svg{position:absolute;left:50%;top:48%;width:max(130vmin,720px);aspect-ratio:1;height:auto;transform:translate(-50%,-50%);animation:spin 420s linear infinite}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.p1{fill:var(--petal-1);stroke:var(--petal-edge);stroke-width:3}
+.p2{fill:var(--petal-2);stroke:var(--petal-edge);stroke-width:2.5}
+.vein{stroke:var(--vein);stroke-width:4;fill:none;opacity:.35;stroke-linecap:round}
+.edge{fill:var(--seed-edge)}
+.sd{fill:var(--seed-dot);opacity:.85}
+
+.app{position:relative;z-index:1;max-width:1080px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px 18px 20px;box-shadow:0 6px 24px var(--shadow);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);min-width:0}
+.cols{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+@media (min-width:900px){.cols{grid-template-columns:1fr 1fr;gap:20px;align-items:start}.col{gap:20px}}
+
+.hdr{display:flex;align-items:center;gap:14px}
+.hdr svg{flex:none}
+.brand{font-size:.78rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,5vw,2.3rem);line-height:1.1;margin:2px 0 0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:0 0 4px;text-wrap:balance}
+.sub{margin:0;color:var(--ink-soft);font-size:.95rem}
+.label{font-size:.75rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+
+.note{background:var(--note-bg)}
+.note .msg{font-family:var(--hand);font-weight:700;font-size:clamp(1.65rem,5.2vw,2.15rem);line-height:1.2;margin:0 0 10px;text-wrap:pretty}
+.note .sign{font-family:var(--hand);font-size:1.4rem;margin:0 0 12px;color:var(--ink-soft)}
+
+.btn{border:0;border-radius:999px;background:var(--sun);color:var(--btn-ink);font-weight:800;padding:11px 20px;min-height:46px;cursor:pointer;box-shadow:0 2px 0 var(--sun-deep)}
+.btn:active{transform:translateY(1px);box-shadow:none}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);box-shadow:none;color:var(--ink);padding:8px 16px;min-height:40px}
+.btn.rose{background:var(--rose);color:var(--rose-ink);box-shadow:none}
+a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+.rem{list-style:none;margin:0;padding:0}
+.rem li{border-top:1px dashed var(--line)}
+.rem li:first-child{border-top:0}
+.rem label{display:flex;gap:12px;align-items:flex-start;padding:11px 0;cursor:pointer}
+.rem input{appearance:none;-webkit-appearance:none;flex:none;width:26px;height:26px;border-radius:50%;border:2.5px solid var(--sun-deep);background:transparent;margin:0;display:grid;place-items:center;cursor:pointer}
+.rem input:checked{background:var(--sun)}
+.rem input:checked::after{content:"";width:6px;height:12px;border:solid var(--btn-ink);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.rem input:checked + span{text-decoration:line-through;opacity:.6}
+.glasses{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.glass{width:30px;height:40px;border:2.5px solid var(--water);border-radius:5px 5px 13px 13px;background:transparent;padding:0;cursor:pointer}
+.glass[aria-pressed="true"]{background:var(--water)}
+
+.ring{display:block;margin:6px auto 4px;width:min(100%,320px);height:auto}
+.pn{fill:var(--sun)} .pp{fill:var(--rose)} .pf{fill:var(--leaf)} .po{fill:var(--leaf);stroke:var(--ink);stroke-width:2}
+.fut{opacity:.4} .cur{stroke:var(--ink);stroke-width:3}
+.disc{fill:var(--seed-2)}
+.ring text{fill:var(--on-seed);text-anchor:middle}
+.ring .t1{font:800 11px var(--body);letter-spacing:.18em}
+.ring .t2{font:700 44px var(--display)}
+.ring .t3{font:700 12px var(--body)}
+.sum{text-align:center;margin:6px 0 2px;font-size:1.02rem}
+.fine{font-size:.8rem;color:var(--ink-soft);text-align:center;margin:6px 0 0}
+.quick{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:12px}
+.quick p{margin:0;text-align:center}
+.quick details{width:100%}
+.quick summary{cursor:pointer;text-align:center;color:var(--ink-soft);font-weight:700;font-size:.92rem}
+.datebox{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
+input[type=date],input[type=number],input[type=text],textarea{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;min-height:42px;max-width:100%}
+textarea{width:100%;resize:vertical}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;font-size:.8rem;color:var(--ink-soft);margin-top:8px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+
+.calhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.calhead h2{margin:0;flex:1;text-align:center}
+.nav{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--line);background:transparent;cursor:pointer;font-weight:800;font-size:1.1rem}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.wd{text-align:center;font-size:.75rem;font-weight:800;color:var(--ink-soft);padding:4px 0}
+.day{aspect-ratio:1;min-width:0;border-radius:14px;border:2px solid transparent;background:transparent;font-weight:700;font-size:.95rem;position:relative;cursor:pointer;padding:0}
+.day.fert{background:var(--fertile-bg)}
+.day.pred{border:2px dashed var(--rose)}
+.day.ov{border:2px solid var(--leaf)}
+.day.per{background:var(--rose);color:var(--rose-ink);border-color:transparent}
+.day.today{font-weight:800;text-decoration:underline;text-underline-offset:3px}
+.day.sel{border:2px solid var(--ink)}
+.day .dot{position:absolute;left:50%;bottom:4px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:currentColor}
+.day:disabled{opacity:.45;cursor:default}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chip{border:1.5px solid var(--line);background:var(--chip);border-radius:999px;padding:7px 14px;font-weight:700;font-size:.9rem;min-height:38px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--sun);color:var(--btn-ink);border-color:var(--sun-deep)}
+
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0 12px}
+.tile{background:var(--chip);border-radius:14px;padding:10px;text-align:center}
+.tile b{display:block;font-family:var(--display);font-size:1.5rem;line-height:1.1}
+.tile span{font-size:.75rem;color:var(--ink-soft)}
+.hist{list-style:none;margin:0;padding:0}
+.hist li{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 0;border-top:1px dashed var(--line);font-size:.92rem}
+.hist li span:last-child{color:var(--ink-soft)}
+details.set{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+details.set summary{cursor:pointer;font-weight:800}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:10px 0}
+.fields label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:700}
+
+.slots{list-style:none;margin:10px 0 0;padding:0;font-size:.92rem}
+.slots li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px dashed var(--line)}
+.slots li span:last-child{color:var(--ink-soft);text-align:right}
+footer{text-align:center;color:var(--ink-soft);font-size:.85rem;margin-top:20px}
+footer p{margin:2px 0}
+#toastWrap{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;pointer-events:none;z-index:20;padding:0 max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+#toast{background:var(--ink);color:var(--bg-a);padding:10px 18px;border-radius:999px;font-weight:700;font-size:.92rem;box-shadow:0 4px 16px var(--shadow)}
+@media (prefers-reduced-motion:reduce){.bloom svg{animation:none}}
+</style>
+</head>
+<body>
+
+
+<div class="bloom" aria-hidden="true"><svg id="bloom" viewBox="-500 -500 1000 1000" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+<div class="app">
+  <header class="card hdr">
+    <span id="logo" aria-hidden="true"></span>
+    <div>
+      <div class="brand">Sunflower Diary</div>
+      <h1 id="hello">Hello</h1>
+      <p class="sub" id="today"></p>
+    </div>
+  </header>
+
+  <div class="cols">
+    <div class="col">
+      <section class="card note" id="note" aria-live="polite"></section>
+      <section class="card" id="remind" aria-labelledby="remH"></section>
+      <section class="card" id="notifCard" aria-label="Notifications"></section>
+      <section class="card" id="ringCard" aria-labelledby="ringH"></section>
+    </div>
+    <div class="col">
+      <section class="card" id="calCard" aria-label="Calendar"></section>
+      <section class="card" id="logCard" aria-label="Daily log"></section>
+      <section class="card" id="insCard" aria-label="History and settings"></section>
+    </div>
+  </div>
+
+  <footer>
+    <p>Made with all my love, just for you.</p>
+    <p>Your diary stays on this device. Nobody else can see it.</p>
+  </footer>
+</div>
+<div id="toastWrap"><div id="toast" role="status" hidden></div></div>
+
+<script>
+/* ===== Make it hers: put her nickname and your name here ===== */
+const HER_NAME = "Mehad";
+const HIS_NAME = "madii";   // signs every note (leave empty to sign as "Always yours")
+const WA_LINK = "https://wa.link/564gp2";   // opens a WhatsApp chat with you
+/* ============================================================ */
+
+const KEY='sunflowerDiary.v1', DAY=86400000;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dn=(y,m,d)=>Math.round(Date.UTC(y,m,d)/DAY);
+const isoToDn=iso=>{const p=String(iso).split('-').map(Number);return p.length===3&&p.every(Number.isFinite)?dn(p[0],p[1]-1,p[2]):null};
+const dnToIso=n=>{const d=new Date(n*DAY);return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0')};
+const NOW=new Date(), TODAY=dn(NOW.getFullYear(),NOW.getMonth(),NOW.getDate());
+const fmt=(n,o)=>new Date(n*DAY).toLocaleDateString('en-GB',Object.assign({timeZone:'UTC'},o));
+const SHORT={day:'numeric',month:'short'}, LONG={weekday:'long',day:'numeric',month:'long'};
+const pl=(n,w)=>n+' '+w+(n===1?'':'s');
+
+/* ---------- storage ---------- */
+function blank(){return {days:[],log:{},water:{},ticks:{},seen:[],fired:{},dismiss:0,set:{cycle:28,period:5,name:''}}}
+function fix(o){const b=blank();const s=Object.assign(b,o||{});s.set=Object.assign(b.set,(o&&o.set)||{});
+  ['days','seen'].forEach(k=>{if(!Array.isArray(s[k]))s[k]=[]});
+  s.days=s.days.filter(Number.isFinite);
+  ['log','water','ticks','fired'].forEach(k=>{if(!s[k]||typeof s[k]!=='object')s[k]={}});
+  [s.water,s.ticks].forEach(o=>{for(const k in o){if(+k<TODAY-30)delete o[k]}});return s}
+function load(){try{const r=localStorage.getItem(KEY);if(r)return fix(JSON.parse(r))}catch(e){}return fix()}
+let S=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true},2600)}
+
+/* ---------- the giant sunflower ---------- */
+function buildBloom(){
+  const N=21;let s='<defs><radialGradient id="seedG" cx="50%" cy="50%" r="50%"><stop offset="0" style="stop-color:var(--seed-2)"/><stop offset="1" style="stop-color:var(--seed-1)"/></radialGradient></defs>';
+  const pOut='M0,-160 C64,-230 78,-390 0,-490 C-78,-390 -64,-230 0,-160Z';
+  const pIn='M0,-160 C54,-220 64,-350 0,-430 C-64,-350 -54,-220 0,-160Z';
+  for(let i=0;i<N;i++)s+=`<g transform="rotate(${(i*360/N).toFixed(2)})"><path class="p1" d="${pOut}"/><path class="vein" d="M0,-200 L0,-450"/></g>`;
+  for(let i=0;i<N;i++)s+=`<g transform="rotate(${((i+.5)*360/N).toFixed(2)})"><path class="p2" d="${pIn}"/><path class="vein" d="M0,-200 L0,-400"/></g>`;
+  s+='<circle r="200" class="edge"/><circle r="192" fill="url(#seedG)"/>';
+  for(let n=1;n<=560;n++){const r=7.8*Math.sqrt(n),t=n*2.399963;
+    s+=`<circle cx="${(r*Math.cos(t)).toFixed(1)}" cy="${(r*Math.sin(t)).toFixed(1)}" r="${(2.2+r/55).toFixed(1)}" class="sd"/>`}
+  $('#bloom').innerHTML=s;
+}
+function miniSun(sz){let s=`<svg width="${sz}" height="${sz}" viewBox="-50 -50 100 100">`;
+  for(let i=0;i<12;i++)s+=`<ellipse cx="0" cy="-33" rx="9" ry="17" class="p2" transform="rotate(${i*30})"/>`;
+  return s+'<circle r="20" class="edge"/><circle r="15" fill="url(#seedG)"/></svg>'}
+
+/* ---------- cycle maths ---------- */
+const isP=d=>S.days.includes(d);
+function groups(){const ds=[...S.days].sort((a,b)=>a-b),g=[];
+  for(const d of ds){const l=g[g.length-1];if(l&&d-l.end<=2){l.end=d;l.n++}else g.push({start:d,end:d,n:1})}return g}
+function avg(a){return Math.round(a.reduce((x,y)=>x+y,0)/a.length)}
+function model(){
+  const g=groups(),cyc=[];
+  for(let i=1;i<g.length;i++){const L=g[i].start-g[i-1].start;if(L>=15&&L<=60)cyc.push(L)}
+  const done=g.length&&g[g.length-1].end>=TODAY-1?g.slice(0,-1):g;
+  const pls=done.map(x=>x.n).filter(n=>n>=2&&n<=10).slice(-6);
+  const st={cycle:cyc.length?avg(cyc.slice(-6)):S.set.cycle,period:pls.length?avg(pls):S.set.period,cycles:cyc.length};
+  const m={g,st,has:g.length>0,pred:new Set(),fert:new Set(),ov:new Set()};
+  if(!m.has)return m;
+  const last=g[g.length-1];m.last=last;m.next=last.start+st.cycle;
+  for(let k=1;k<=8;k++){const s=last.start+k*st.cycle;
+    for(let i=0;i<st.period;i++)m.pred.add(s+i);
+    const ov=s-14;m.ov.add(ov);for(let i=-5;i<=1;i++)m.fert.add(ov+i)}
+  return m;
+}
+function phase(m){
+  if(isP(TODAY))return 'period';
+  if(!m.has)return 'none';
+  const ov=m.next-14;
+  if(TODAY>m.next)return 'late';
+  if(m.next-TODAY<=5)return 'pre';
+  if(TODAY>=ov-5&&TODAY<=ov+1)return 'fertile';
+  if(TODAY<ov-5)return 'after';
+  return 'luteal';
+}
+const PH={period:'Period',after:'Fresh days',fertile:'Fertile window',luteal:'Cosy days',pre:'Pre-period',late:'Running late',none:'Start here'};
+function toggleDay(d){const i=S.days.indexOf(d);if(i>=0)S.days.splice(i,1);else S.days.push(d);S.days.sort((a,b)=>a-b);save()}
+
+/* ---------- words ---------- */
+const G=[
+"{name}, I just want you to know I'm thinking about you, and I'm so glad you're mine.",
+"You are the first good thing I think about every morning and the last one before I sleep.",
+"Like a sunflower follows the sun, my heart follows you. Everywhere. Always.",
+"Whatever happened today, you are enough exactly as you are. I love you for all of it.",
+"You don't have to be strong all the time with me. Soft days are welcome here.",
+"I care about the big things in your life and the tiny ones too. Even what you had for lunch.",
+"If I could carry every tiring thing for you today, I would. Since I can't, here is all my love instead.",
+"Your smile is my favourite place to be.",
+"Thank you for being patient with me, for laughing with me, and for simply being you.",
+"Be as gentle with yourself as you are with everyone else, {name}.",
+"You make ordinary days feel like something worth keeping.",
+"Your laugh can fix my worst day. Please keep it coming.",
+"I love how deeply you care about people. Today, let someone care deeply about you. Let it be me.",
+"No matter how the day goes, you have someone in your corner. Always.",
+"I fell for you a little more today, and you didn't even try.",
+"Take your time with today. I'm not going anywhere.",
+"You are not a burden, not even a little. You are my favourite part of every day.",
+"Someone out there is very lucky to love you, and that someone is me.",
+"Even when we're apart, you're my home, {name}.",
+"You're allowed to rest. The world can wait. I'll be right here.",
+"I'm proud of you, for the things you do and for the days you just get through.",
+"Sending you a warm hug right now. A long one, the kind where I never let go first.",
+"You are my sunshine on the cloudiest days. I hope you can feel how loved you are.",
+"There is no one I'd rather talk to about nothing for hours.",
+"I love you more than I know how to say, so I made you a little sunflower garden to say it every day.",
+"Whatever you're feeling today, you can tell me. I'll listen, and I won't try to fix it unless you want me to.",
+"You're beautiful inside and out, and I hope you remember that today.",
+"A little reminder: you matter to me more than you know, {name}.",
+"Of all the people in the world, I get to love you. I'm so grateful.",
+"Hard days pass. Your strength stays. And so do I."];
+const P=[
+"{name}, I know these days can be rough. Please rest, with no guilt at all. I love you through every day of the month.",
+"Your body is working hard right now. Let it rest, and let me spoil you a little.",
+"Hot pad, warm drink, comfiest clothes. You're allowed to do absolutely nothing today.",
+"If it hurts, tell me what would help, even if it's just company or a snack. I'm here.",
+"You are never 'too much' on hard days. You are my favourite person on every day.",
+"Mood swings, cravings, tiredness: all of it is okay with me. I love every version of you.",
+"Today your only job is taking care of you. I'll handle the loving part.",
+"I wish I could take the cramps away. Until then I'm sending hugs and all my patience.",
+"You are so strong, even when you feel like you aren't. Resting is part of being strong.",
+"Eat something you love today. You deserve a treat, and I'm not accepting arguments.",
+"However you feel today is okay. Cry, laugh, nap, snack. I'm proud of you for all of it."];
+const R=[
+"Feeling extra sensitive lately? That's okay. I'm patient, and I'm on your side.",
+"If everything feels like too much today, let's take it one small thing at a time.",
+"Cravings are welcome. So are cosy blankets, naps, and my full attention.",
+"Whatever mood visits you today, I'll be here, and I'll love you just the same.",
+"Be extra kind to yourself these next few days. I will be too."];
+const POOLS={g:G,p:P,r:R};
+const nick=()=>HER_NAME.trim();
+const fill=t=>{const s=t.replace(/\{name\}/g,nick()||'my sunflower');return s.charAt(0).toUpperCase()+s.slice(1)};
+const SIGN=HIS_NAME?'— '+HIS_NAME:'— Always yours';
+
+function pickFrom(pre){const arr=POOLS[pre];
+  let free=arr.map((_,i)=>pre+i).filter(id=>!S.seen.includes(id));
+  if(!free.length){S.seen=S.seen.filter(id=>id[0]!==pre);free=arr.map((_,i)=>pre+i)}
+  const id=free[Math.floor(Math.random()*free.length)];S.seen.push(id);return id}
+let MSG='';
+function pickMsg(){
+  const ph=phase(model()),r=Math.random();
+  const pre=ph==='period'&&r<.7?'p':ph==='pre'&&r<.6?'r':'g';
+  MSG=pickFrom(pre);save();
+}
+const msgText=id=>POOLS[id[0]][+id.slice(1)];
+
+/* reminders */
+const WATER=["Drink a glass of water right now. Your body will thank you.","Water time! Have a big glass, and refill it for later.","Sip some water. Staying hydrated helps you feel better."];
+const FOOD=["Have you eaten properly today? Please don't skip meals.","Time for real food. Something warm and filling would be lovely.","Eat something nice, and don't wait until you're starving."];
+const RP=[
+{id:'hot',t:"Get your hot pad and keep your lower tummy warm."},
+{id:'tea',t:"Make a warm drink. Ginger tea or plain warm water both feel cosy."},
+{id:'rest',t:"Rest a little. Slowing down today is allowed."},
+{id:'iron',t:"Add something nourishing to a meal, like leafy greens, lentils or eggs."},
+{id:'cosy',t:"Wear your comfiest clothes and get cosy under a blanket."},
+{id:'stretch',t:"Try a few slow stretches or a short gentle walk, if it feels good."},
+{id:'pain',t:"If cramps are strong, take what your doctor usually advises. If the pain is very severe or unusual, please see a doctor."},
+{id:'pad',t:"Check that you have enough pads or tampons with you today."}];
+const RPRE=[
+{id:'pad2',t:"Keep a pad in your bag, just in case."},
+{id:'hot2',t:"Keep your hot pad close by, just in case."},
+{id:'snack',t:"Have a snack you enjoy. Cravings are normal."},
+{id:'sleep2',t:"Try to sleep a little earlier tonight."}];
+const RG=[
+{id:'sleep',t:"Aim for a good night's sleep tonight."},
+{id:'sun',t:"Step outside for a few minutes of sunlight."},
+{id:'stretch2',t:"Stand up and stretch your shoulders and back."},
+{id:'breathe',t:"Take three slow, deep breaths."},
+{id:'msg',t:"Message me if you need anything at all."},
+{id:'kind',t:"Say one kind thing to yourself."}];
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+function sample(a,n){const c=[...a],o=[];while(o.length<n&&c.length)o.push(c.splice(Math.floor(Math.random()*c.length),1)[0]);return o}
+let REM=[];
+function pickReminders(){
+  const ph=phase(model());
+  const pool=ph==='period'?RP:ph==='pre'?RPRE:RG;
+  let a=TODAY>>>0;
+  const rr=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  const pk=arr=>arr[Math.floor(rr()*arr.length)];
+  REM=[{id:'water',t:pk(WATER)},{id:'food',t:pk(FOOD)},{id:'pray',t:"Have you prayed? Take a quiet moment for it."},{id:'how',t:"How are you really doing today? Tell me if anything feels heavy."},pk(pool)];
+}
+
+/* ---------- render ---------- */
+let viewY=NOW.getFullYear(),viewM=NOW.getMonth(),SEL=TODAY;
+
+function renderTop(){
+  const h=NOW.getHours();
+  const g=h<5?'Hello, night owl':h<12?'Good morning':h<17?'Good afternoon':h<21?'Good evening':'Good night';
+  $('#hello').textContent=g+', '+(nick()||'sunflower');
+  $('#today').textContent=fmt(TODAY,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  $('#logo').innerHTML=miniSun(60);
+}
+function renderNote(){
+  $('#note').innerHTML=`<p class="label">A note for you</p><p class="msg">${esc(fill(msgText(MSG)))}</p><p class="sign">${esc(SIGN)}</p><div class="row"><button class="btn ghost" data-act="another">Another one</button>${WA_LINK?`<a class="btn" href="${esc(WA_LINK)}" target="_blank" rel="noopener">Message ${esc(HIS_NAME||'me')}</a>`:''}</div>`;
+}
+function renderRemind(){
+  const ticks=S.ticks[TODAY]||[],w=S.water[TODAY]||0;
+  let li='';REM.forEach(r=>{li+=`<li><label><input type="checkbox" data-id="${r.id}" ${ticks.includes(r.id)?'checked':''}><span>${esc(r.t)}</span></label></li>`});
+  let gl='';for(let i=1;i<=8;i++)gl+=`<button class="glass" data-act="glass" data-n="${i}" aria-pressed="${i<=w}" aria-label="Glass ${i}"></button>`;
+  $('#remind').innerHTML=`<h2 id="remH">Little things for you today</h2><p class="sub">Tick them off as you go.</p><ul class="rem">${li}</ul>
+  <p class="label" style="margin-top:12px">Water today: ${w} of 8 glasses</p><div class="glasses">${gl}</div>`;
+}
+function startedEarlier(open){
+  return `<details ${open?'open':''}><summary>${open?'Pick the date':'Started earlier? Pick the date'}</summary><div class="datebox"><input type="date" id="startDate" max="${dnToIso(TODAY)}" value="${dnToIso(TODAY)}" aria-label="First day of period"><button class="btn" data-act="saveStart">Save</button></div></details>`;
+}
+function renderRing(){
+  const m=model(),st=m.st,ph=phase(m);
+  const N=Math.max(21,Math.min(45,st.cycle)),cd=m.has?TODAY-m.last.start+1:0,R=108,w=Math.min(9,(2*Math.PI*R/N)*.36);
+  let p='';
+  for(let i=0;i<N;i++){
+    const day=m.has?m.last.start+i:-1;let c='pn';
+    if(m.has){if(i<st.period)c='pp';else if(m.ov.has(day))c='po';else if(m.fert.has(day))c='pf'}
+    const cur=m.has&&i+1===cd,past=m.has&&i+1<cd;
+    p+=`<ellipse class="${c}${past||cur?'':' fut'}${cur?' cur':''}" cx="150" cy="${150-R}" rx="${cur?w+2:w}" ry="${cur?22:17}" transform="rotate(${(i*360/N).toFixed(2)} 150 150)"/>`;
+  }
+  const big=m.has?cd:'–';
+  const svg=`<svg class="ring" viewBox="0 0 300 300" role="img" aria-label="${m.has?`Cycle day ${cd}, ${PH[ph]}`:'Cycle flower, no period logged yet'}">${p}<circle cx="150" cy="150" r="68" class="disc"/><text class="t1" x="150" y="127">DAY</text><text class="t2" x="150" y="166">${big}</text><text class="t3" x="150" y="187">${PH[ph]}</text></svg>`;
+  let sum='',quick='';
+  if(!m.has){
+    sum='Tell me when your last period started, and I will start counting.';
+    quick=startedEarlier(true);
+  }else{
+    const ov=m.next-14,left=m.next-TODAY;
+    if(left<0){const l=-left;sum=`Your period was expected ${pl(l,'day')} ago. Cycles can run a little late, and that is normal.`}
+    else sum=`Next period expected ${left===0?'<b>today</b>':left===1?'<b>tomorrow</b>':'in <b>'+left+' days</b>'}, around <b>${fmt(m.next,SHORT)}</b>.`;
+    if(ph==='fertile')sum+='<br>You are in your estimated fertile window.';
+    else if(left>=0&&ov+1>=TODAY)sum+=`<br>Estimated fertile window: ${fmt(ov-5,SHORT)} to ${fmt(ov+1,SHORT)}.`;
+    if(isP(TODAY))quick=`<p>Today is logged as a period day. Be gentle with yourself.</p><button class="btn ghost" data-act="undoToday">Undo today</button>`;
+    else if(isP(TODAY-1)&&S.dismiss!==TODAY)quick=`<p><b>Still on your period today?</b></p><div class="row"><button class="btn rose" data-act="stillYes">Yes, log today</button><button class="btn ghost" data-act="stillNo">No, it's over</button></div>`;
+    else quick=`<button class="btn" data-act="startToday">My period started today</button>${startedEarlier(false)}`;
+  }
+  $('#ringCard').innerHTML=`<h2 id="ringH">Your cycle flower</h2>${svg}<p class="sum">${sum}</p>
+  <div class="legend"><span><i style="background:var(--rose)"></i>Period</span><span><i style="background:var(--leaf)"></i>Fertile (est.)</span><span><i style="background:var(--sun)"></i>Other days</span></div>
+  <div class="quick">${quick}</div><p class="fine">Estimates from your own logged cycles. Not medical advice and not birth control.</p>`;
+}
+function renderCal(){
+  const m=model(),first=dn(viewY,viewM,1),wd=new Date(first*DAY).getUTCDay(),dim=new Date(Date.UTC(viewY,viewM+1,0)).getUTCDate();
+  let g=['S','M','T','W','T','F','S'].map(d=>`<div class="wd" aria-hidden="true">${d}</div>`).join('');
+  for(let i=0;i<wd;i++)g+='<div></div>';
+  for(let d=0;d<dim;d++){
+    const n=first+d,per=isP(n);let c='day',tags=[];
+    if(per){c+=' per';tags.push('period day')}
+    else if(m.has&&m.pred.has(n)){c+=' pred';tags.push('expected period')}
+    if(!per&&m.has&&m.ov.has(n)){c+=' ov';tags.push('estimated ovulation')}
+    else if(!per&&m.has&&m.fert.has(n)&&!m.pred.has(n)){c+=' fert';tags.push('estimated fertile window')}
+    if(n===TODAY){c+=' today';tags.push('today')}
+    if(n===SEL)c+=' sel';
+    const lg=S.log[n],has=lg&&((lg.mood&&lg.mood.length)||(lg.sym&&lg.sym.length)||lg.note||lg.flow);
+    g+=`<button class="${c}" data-act="pick" data-d="${n}" aria-pressed="${n===SEL}" aria-label="${fmt(n,LONG)}${tags.length?', '+tags.join(', '):''}">${d+1}${has?'<span class="dot"></span>':''}</button>`;
+  }
+  $('#calCard').innerHTML=`<div class="calhead"><button class="nav" data-act="prev" aria-label="Previous month">&lsaquo;</button><h2>${fmt(first,{month:'long',year:'numeric'})}</h2><button class="nav" data-act="next" aria-label="Next month">&rsaquo;</button></div>
+  <div class="grid">${g}</div>
+  <div class="legend"><span><i style="background:var(--rose)"></i>Period</span><span><i style="border:2px dashed var(--rose)"></i>Expected</span><span><i style="background:var(--fertile-bg);border:1px solid var(--leaf)"></i>Fertile (est.)</span></div>
+  <div class="row" style="justify-content:center;margin-top:10px"><button class="btn ghost" data-act="thisMonth">Back to today</button></div>`;
+}
+const MOODS=['Happy','Calm','Loved','Tired','Sad','Irritable','Anxious'];
+const SYMS=['Cramps','Headache','Back pain','Bloating','Cravings','Sore breasts','Acne','Nausea'];
+const FLOWS=['Light','Medium','Heavy'];
+function chips(list,key,sel){return `<div class="chips">${list.map(v=>`<button class="chip" data-act="chip" data-k="${key}" data-v="${v}" aria-pressed="${sel.includes(v)}">${v}</button>`).join('')}</div>`}
+function renderLog(){
+  const lg=S.log[SEL]||{},fut=SEL>TODAY,per=isP(SEL);
+  if(fut){$('#logCard').innerHTML=`<h2>${fmt(SEL,LONG)}</h2><p class="sub">This day hasn't come yet. You can log it when it does.</p>`;return}
+  $('#logCard').innerHTML=`<h2>How are you feeling?</h2><p class="sub" style="margin-bottom:12px">${fmt(SEL,LONG)}${SEL===TODAY?' (today)':''}</p>
+  <div class="row" style="margin-bottom:14px"><button class="btn ${per?'rose':''}" data-act="togglePeriod" aria-pressed="${per}">${per?'Period day ✓ (tap to undo)':'Mark as a period day'}</button></div>
+  ${per?`<p class="label">Flow</p>${chips(FLOWS,'flow',lg.flow?[lg.flow]:[])}`:''}
+  <p class="label">Mood</p>${chips(MOODS,'mood',lg.mood||[])}
+  <p class="label">Body</p>${chips(SYMS,'sym',lg.sym||[])}
+  <p class="label"><label for="noteBox">Note to myself</label></p>
+  <textarea id="noteBox" rows="2" maxlength="400" placeholder="Anything you want to remember about today...">${esc(lg.note||'')}</textarea>`;
+}
+function renderIns(){
+  const m=model(),g=m.g,st=m.st;
+  let hist='';
+  g.slice(-6).reverse().forEach((x)=>{
+    const idx=g.indexOf(x),nx=g[idx+1];
+    hist+=`<li><span>${fmt(x.start,SHORT)}${x.n>1?' to '+fmt(x.end,SHORT):''}</span><span>${pl(x.n,'day')}${nx?' · cycle '+pl(nx.start-x.start,'day'):''}</span></li>`});
+  $('#insCard').innerHTML=`<h2>Your rhythm</h2>
+  <div class="tiles"><div class="tile"><b>${st.cycle}</b><span>days per cycle</span></div><div class="tile"><b>${st.period}</b><span>days of period</span></div><div class="tile"><b>${g.length}</b><span>periods logged</span></div></div>
+  ${g.length?`<ul class="hist">${hist}</ul>`:'<p class="sub">Your logged periods will show up here.</p>'}
+  ${m.has&&st.cycles<2?'<p class="fine" style="text-align:left">Predictions use your usual cycle length until a few cycles are logged.</p>':''}
+  <details class="set"><summary>Settings and backup</summary>
+    <div class="fields">
+      
+      <label>Usual cycle (days)<input type="number" id="setCycle" min="20" max="45" value="${S.set.cycle}"></label>
+      <label>Usual period (days)<input type="number" id="setPeriod" min="2" max="10" value="${S.set.period}"></label>
+    </div>
+    <p class="fine" style="text-align:left">To use the diary on another phone or laptop, make a backup code here, then paste it there and tap Restore.</p>
+    <textarea id="backupBox" rows="3" aria-label="Backup code" placeholder="Backup code appears here. To restore, paste a code here."></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn ghost" data-act="backup">Make backup code</button><button class="btn ghost" data-act="restore">Restore from box</button><button class="btn ghost" data-act="erase">Erase this device</button></div>
+  </details>`;
+}
+function renderAll(){renderTop();renderNote();renderRemind();renderNotif();renderRing();renderCal();renderLog();renderIns()}
+function refreshData(){renderRing();renderCal();renderLog();renderIns()}
+
+/* ---------- actions ---------- */
+let pending=null;
+function confirm2(key,msg){const t=Date.now();if(pending&&pending.key===key&&t<pending.exp){pending=null;return true}pending={key,exp:t+5000};toast(msg);return false}
+function curLog(){return S.log[SEL]||(S.log[SEL]={})}
+function backupCode(){return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}
+
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act;
+  if(a==='notifOn'){
+    try{Promise.resolve(Notification.requestPermission()).then(()=>{renderNotif();checkDue()},()=>renderNotif())}catch(err){toast('Notifications are not available here.')}}
+  else if(a==='notifTest'){showNote('Test from '+(HIS_NAME||'me'),'If you can read this, your reminders will reach you.','test')}
+  else if(a==='another'){pickMsg();renderNote()}
+  else if(a==='glass'){const n=+el.dataset.n,cur=S.water[TODAY]||0;S.water[TODAY]=cur===n?n-1:n;save();renderRemind();if(S.water[TODAY]===8)toast('8 glasses! Proud of you.')}
+  else if(a==='startToday'){if(!isP(TODAY))toggleDay(TODAY);toast('Logged. Take it easy today.');pickReminders();refreshData();renderRemind()}
+  else if(a==='stillYes'){if(!isP(TODAY))toggleDay(TODAY);refreshData()}
+  else if(a==='stillNo'){S.dismiss=TODAY;save();toast('Okay, marked as finished.');refreshData()}
+  else if(a==='undoToday'){if(isP(TODAY))toggleDay(TODAY);refreshData()}
+  else if(a==='saveStart'){
+    const v=isoToDn(($('#startDate')||{}).value);
+    if(v===null||v>TODAY){toast('Please pick a date up to today.');return}
+    const m=model();for(let i=0;i<m.st.period;i++){const d=v+i;if(d<=TODAY&&!isP(d))S.days.push(d)}
+    S.days.sort((x,y)=>x-y);save();viewY=new Date(v*DAY).getUTCFullYear();viewM=new Date(v*DAY).getUTCMonth();
+    toast('Saved. You can fix any day in the calendar.');pickReminders();refreshData();renderRemind()}
+  else if(a==='prev'){viewM--;if(viewM<0){viewM=11;viewY--}renderCal()}
+  else if(a==='next'){viewM++;if(viewM>11){viewM=0;viewY++}renderCal()}
+  else if(a==='thisMonth'){viewY=NOW.getFullYear();viewM=NOW.getMonth();SEL=TODAY;renderCal();renderLog()}
+  else if(a==='pick'){SEL=+el.dataset.d;renderCal();renderLog()}
+  else if(a==='togglePeriod'){if(SEL<=TODAY){toggleDay(SEL);refreshData()}}
+  else if(a==='chip'){
+    const lg=curLog(),k=el.dataset.k,v=el.dataset.v;
+    if(k==='flow')lg.flow=lg.flow===v?'':v;
+    else{const arr=lg[k]||(lg[k]=[]),i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v)}
+    save();renderLog();renderCal()}
+  else if(a==='backup'){
+    const code=backupCode(),box=$('#backupBox');box.value=code;box.select();
+    (navigator.clipboard?navigator.clipboard.writeText(code):Promise.reject()).then(()=>toast('Backup code copied.'),()=>toast('Select the code in the box and copy it.'))}
+  else if(a==='restore'){
+    const box=$('#backupBox');let obj;
+    try{obj=JSON.parse(decodeURIComponent(escape(atob(box.value.trim()))));if(!obj||!Array.isArray(obj.days))throw 0}catch(err){toast('That code does not look right.');return}
+    if(!confirm2('restore','Tap Restore again to replace what is on this device.'))return;
+    S=fix(obj);save();pickReminders();renderAll();toast('Restored.')}
+  else if(a==='erase'){
+    if(!confirm2('erase','Tap again to erase everything on this device.'))return;
+    S=fix();save();pickMsg();pickReminders();renderAll();toast('Everything erased.')}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.matches('.rem input[type=checkbox]')){
+    const arr=S.ticks[TODAY]||(S.ticks[TODAY]=[]),id=t.dataset.id,i=arr.indexOf(id);
+    if(t.checked&&i<0)arr.push(id);if(!t.checked&&i>=0)arr.splice(i,1);save()}
+    else if(t.id==='setCycle'){S.set.cycle=Math.max(20,Math.min(45,Math.round(+t.value)||28));t.value=S.set.cycle;save();refreshData()}
+  else if(t.id==='setPeriod'){S.set.period=Math.max(2,Math.min(10,Math.round(+t.value)||5));t.value=S.set.period;save();refreshData()}
+  else if(t.id==='noteBox'){renderCal()}
+});
+document.addEventListener('input',e=>{if(e.target.id==='noteBox'){curLog().note=e.target.value;save()}});
+
+/* ---------- notifications (Oman time) ---------- */
+const SLOTS=[
+ {
+  "id": "am",
+  "h": 7,
+  "m": 0,
+  "label": "Good morning",
+  "title": "Good morning, Mehad",
+  "v": [
+   "I love you. Start your day with a glass of water and a proper breakfast.",
+   "A new day, a new sunflower morning. I'm so proud of you. Drink some water first.",
+   "Rise and shine, my sunflower. I'm thinking of you. Be gentle with yourself today.",
+   "Good morning! Eat something before anything else today. I love you.",
+   "Wishing you the softest morning. You are loved more than you know.",
+   "Morning, love. Stretch a little, drink water, and smile for me.",
+   "Today is yours. Take it slow, and know I'm right here."
+  ]
+ },
+ {
+  "id": "bfast",
+  "h": 8,
+  "m": 30,
+  "label": "Breakfast",
+  "title": "Breakfast time",
+  "v": [
+   "Have you had breakfast? Please eat something warm.",
+   "Don't skip breakfast, Mehad. Even something small helps.",
+   "A good breakfast makes a good day. Go eat, I'll wait."
+  ]
+ },
+ {
+  "id": "water1",
+  "h": 10,
+  "m": 0,
+  "label": "Water",
+  "title": "Water time",
+  "v": [
+   "Drink a big glass of water now.",
+   "Sip some water. Your body will thank you.",
+   "Water break! A glass now, a glass later."
+  ]
+ },
+ {
+  "id": "how",
+  "h": 11,
+  "m": 0,
+  "label": "How are you doing?",
+  "title": "How are you doing?",
+  "v": [
+   "Tell me how you're feeling today. I'm thinking of you.",
+   "How's your day going so far? I'd love to hear.",
+   "Are you feeling okay? Cramps, mood, anything. Tell me."
+  ]
+ },
+ {
+  "id": "lunch",
+  "h": 13,
+  "m": 0,
+  "label": "Lunch",
+  "title": "Did you eat lunch?",
+  "v": [
+   "Please have a proper lunch. Don't wait until you're starving.",
+   "Lunch time! Eat something you love.",
+   "Have you eaten? Please don't skip lunch."
+  ]
+ },
+ {
+  "id": "rest",
+  "h": 14,
+  "m": 30,
+  "label": "A little rest",
+  "title": "Take a little rest",
+  "v": [
+   "Rest your eyes for a few minutes. Breathe slowly.",
+   "Warm your hot pad if you need it, and sit back for a bit.",
+   "Stretch your shoulders and back. You've been working hard."
+  ]
+ },
+ {
+  "id": "water2",
+  "h": 15,
+  "m": 30,
+  "label": "Water again",
+  "title": "Water again",
+  "v": [
+   "Another glass of water, please.",
+   "Stay hydrated, Mehad. A glass right now.",
+   "Have you been drinking water? Go have a glass."
+  ]
+ },
+ {
+  "id": "snack",
+  "h": 16,
+  "m": 30,
+  "label": "Snack",
+  "title": "Snack time",
+  "v": [
+   "Have a little snack. Something sweet maybe.",
+   "Hungry? Grab a snack, you deserve it.",
+   "A small treat for a good day. Go get one."
+  ]
+ },
+ {
+  "id": "love",
+  "h": 17,
+  "m": 30,
+  "label": "Thinking of you",
+  "title": "Thinking of you",
+  "v": [
+   "Just a reminder: I love you, and I'm proud of you.",
+   "You are my favourite person. That's all. Smile!",
+   "Hard day or easy day, I'm on your side."
+  ]
+ },
+ {
+  "id": "dinner",
+  "h": 19,
+  "m": 0,
+  "label": "Dinner",
+  "title": "Dinner time",
+  "v": [
+   "Have you had dinner? Please eat something warm.",
+   "Don't skip dinner, love. Eat, then rest.",
+   "Time to eat! Tell me what you're having."
+  ]
+ },
+ {
+  "id": "pray",
+  "h": 20,
+  "m": 30,
+  "label": "Prayer",
+  "title": "Did you pray?",
+  "v": [
+   "Take a quiet moment to pray today.",
+   "Have you prayed? A little calm for the heart.",
+   "A moment of prayer and peace, if you haven't yet."
+  ]
+ },
+ {
+  "id": "night",
+  "h": 22,
+  "m": 0,
+  "label": "Goodnight",
+  "title": "Goodnight, Mehad",
+  "v": [
+   "Rest well. Warm your tummy, drink water, and sleep soft.",
+   "Goodnight, my sunflower. I love you.",
+   "Sleep tight. Tomorrow I'll be here again.",
+   "Close your eyes. You did enough today."
+  ]
+ }
+];
+const dayNum=d=>Math.floor(Date.UTC(+d.slice(0,4),+d.slice(4,6)-1,+d.slice(6,8))/864e5);
+const two=n=>String(n).padStart(2,'0');
+function oman(){
+  const o={};new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Muscat',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).forEach(x=>{o[x.type]=x.value});
+  return {date:o.year+o.month+o.day,min:(+o.hour)*60+(+o.minute)};
+}
+const notifState=()=>('Notification' in window)?Notification.permission:'unsupported';
+async function showNote(title,body,tag){
+  try{
+    const reg=('serviceWorker' in navigator)?await navigator.serviceWorker.getRegistration():null;
+    if(reg&&reg.showNotification){await reg.showNotification(title,{body,tag,icon:'icon-192.png',badge:'icon-192.png'});return}
+  }catch(e){}
+  try{new Notification(title,{body,tag})}catch(e){toast(title+': '+body)}
+}
+function regBg(){
+  try{navigator.serviceWorker.ready.then(r=>{if(r.periodicSync)r.periodicSync.register('sunflower-remind',{minInterval:3600000}).catch(()=>{})}).catch(()=>{})}catch(e){}
+}
+function checkDue(){
+  if(notifState()!=='granted')return;
+  regBg();
+  const t=oman();
+  for(const k in S.fired){if(k.indexOf(t.date)!==0)delete S.fired[k]}
+  SLOTS.forEach(sl=>{
+    const sm=sl.h*60+sl.m,k=t.date+'|'+sl.id;
+    if(t.min>=sm&&t.min-sm<=120&&!S.fired[k]){S.fired[k]=1;save();showNote(sl.title,sl.v[dayNum(t.date)%sl.v.length]+' '+SIGN,sl.id)}
+  });
+}
+function renderNotif(){
+  const st=notifState();let body;
+  if(st==='unsupported')body='<p class="sub">This browser cannot show notifications.</p>';
+  else if(st==='denied')body='<p class="sub">Notifications are blocked. Turn them back on in your browser or phone settings for this app.</p>';
+  else if(st==='default')body='<p class="sub">Allow notifications so I can send you little reminders.</p><div class="row"><button class="btn" data-act="notifOn">Allow notifications</button></div>';
+  else body='<p class="sub">Notifications are on. I will keep reminding you.</p>';
+  $('#notifCard').innerHTML='<h2>Reminders for you</h2>'+body;
+}
+setInterval(checkDue,30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkDue()});
+
+buildBloom();pickMsg();pickReminders();renderAll();checkDue();
+</script>
+<script>
+if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
+}
+</script>
+</body>
+</html>
